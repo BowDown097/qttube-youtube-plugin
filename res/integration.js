@@ -68,24 +68,27 @@ new QWebChannel(qt.webChannelTransport, async function(channel) {
         }
 
         // quality preference
-        const qualityKeyOverrides = {
+        const qualityNames = {
             [playerSettings.Quality.HD4320]: "highres",
-            [playerSettings.Quality.SD480]: "large",
-            [playerSettings.Quality.SD360]: "medium",
-            [playerSettings.Quality.SD240]: "small",
-            [playerSettings.Quality.SD144]: "tiny"
+            [playerSettings.Quality.HD2160]: "hd2160",
+            [playerSettings.Quality.HD1440]: "hd1440",
+            [playerSettings.Quality.HD1080]: "hd1080",
+            [playerSettings.Quality.HD720]:  "hd720",
+            [playerSettings.Quality.SD480]:  "large",
+            [playerSettings.Quality.SD360]:  "medium",
+            [playerSettings.Quality.SD240]:  "small",
+            [playerSettings.Quality.SD144]:  "tiny"
         };
 
-        var qPref = qualityKeyOverrides[playerSettings.preferredQuality] ||
-            Object.keys(playerSettings.Quality)[playerSettings.preferredQuality].toLowerCase();
+        var qPref = qualityNames[playerSettings.preferredQuality];
 
         if (playerSettings.qualityFromPlayer) {
             p.addEventListener("onPlaybackQualityChange", q => {
-                if (q == qPref)
-                    return;
-                const match = Object.keys(playerSettings.Quality).find(k => q == k.toLowerCase());
-                if (match)
-                    playerSettings.preferredQuality = playerSettings.Quality[match];
+                if (q != qPref) {
+                    const match = Object.keys(qualityNames).find(k => qualityNames[k] == q);
+                    if (match)
+                        playerSettings.preferredQuality = match;
+                }
             });
         }
 
