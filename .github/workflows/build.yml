@@ -1,0 +1,72 @@
+name: Build
+
+on:
+  push:
+    branches: [ "master" ]
+    paths-ignore:
+      - '**.md'
+      - '**/LICENSE'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**/LICENSE'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: Ubuntu
+            qt_ver: 6
+            qt_host: linux
+            qt_version: '6.8.1'
+            qt_modules: 'qtserialport qtpositioning qtwebchannel qtwebengine'
+          - os: windows-2022
+            qt_ver: 6
+            qt_host: windows
+            qt_version: '6.8.1'
+            qt_modules: 'qtserialport qtpositioning qtwebchannel qtwebengine'
+    
+    runs-on: ${{ matrix.os }}
+    
+    env:
+      BUILD_DIR: "build"
+      BUILD_TYPE: Release
+      PLUGIN_NAME: "qttube-youtube-plugin"
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          
+      - name: Set up MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ matrix.qt_version }}
+          host: ${{ matrix.qt_host }}
+          target: 'desktop'
+          modules: ${{ matrix.qt_modules }}
+          cache: true
+          cache-key-prefix: ${{ matrix.qt_host }}-${{ matrix.qt_version }}-"${{ matrix.qt_modules }}"-qt_cache
+
+      - name: Configure CMake
+        run: cmake -B ${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+      
+      - name: Build
+        run: cmake --build ${{ env.BUILD_DIR }} --config ${{ env.BUILD_TYPE }}
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PLUGIN_NAME }}-${{ runner.os }}-${{ env.VERSION }}-Qt${{ matrix.qt_ver }}-${{ env.BUILD_TYPE }}
+          path: |
+            ${{ env.BUILD_DIR }}/**/*.so
+            ${{ env.BUILD_DIR }}/**/*.dll
+            ${{ env.BUILD_DIR }}/**/*.dylib
