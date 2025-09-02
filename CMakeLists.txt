@@ -14,8 +14,15 @@ set_target_properties(qttube-youtube-plugin PROPERTIES
     AUTOMOC ON
     AUTORCC ON
     AUTOUIC ON
+    BUILD_WITH_INSTALL_RPATH ON
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON)
+
+if(UNIX AND NOT APPLE)
+    set_target_properties(qttube-youtube-plugin PROPERTIES INSTALL_RPATH "$ORIGIN/../plugin-libs")
+elseif(APPLE)
+    set_target_properties(qttube-youtube-plugin PROPERTIES INSTALL_RPATH "@loader_path/../plugin-libs")
+endif()
 
 target_sources(qttube-youtube-plugin
     PRIVATE
