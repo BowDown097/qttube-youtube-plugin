@@ -61,12 +61,35 @@ jobs:
       
       - name: Build
         run: cmake --build ${{ env.BUILD_DIR }} --config ${{ env.BUILD_TYPE }}
-        
+
+      - name: Set build product environment variable (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: echo "BUILD_PRODUCT_DIR=${{ env.BUILD_DIR }}/${{ env.BUILD_TYPE }}" >> $GITHUB_ENV
+
+      - name: Set build product environment variable (non-Windows)
+        if: runner.os != 'Windows'
+        run: echo "BUILD_PRODUCT_DIR=${{ env.BUILD_DIR }}" >> $GITHUB_ENV
+
+      - name: Bundle Qt Sql (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p "${{ env.BUILD_PRODUCT_DIR }}/libs"
+          cp "${{ env.QT_ROOT_DIR }}/bin/Qt6Sql.dll" "${{ env.BUILD_PRODUCT_DIR }}/libs/"
+
+      - name: Bundle Qt Sql (non-Windows)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p "${{ env.BUILD_PRODUCT_DIR }}/libs"
+          cp "${{ env.QT_ROOT_DIR }}/lib/"libQt6Sql.so* "${{ env.BUILD_PRODUCT_DIR }}/libs/"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PLUGIN_NAME }}-${{ runner.os }}-${{ env.VERSION }}-Qt${{ matrix.qt_ver }}-${{ env.BUILD_TYPE }}
           path: |
-            ${{ env.BUILD_DIR }}/**/*.so
-            ${{ env.BUILD_DIR }}/**/*.dll
-            ${{ env.BUILD_DIR }}/**/*.dylib
+            ${{ env.BUILD_PRODUCT_DIR }}/*.so
+            ${{ env.BUILD_PRODUCT_DIR }}/*.dll
+            ${{ env.BUILD_PRODUCT_DIR }}/*.dylib
+            ${{ env.BUILD_PRODUCT_DIR }}/libs/
