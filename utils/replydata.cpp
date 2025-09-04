@@ -344,8 +344,8 @@ QtTubePlugin::BrowseData getSearchData(const InnertubeEndpoints::SearchResponse&
 QtTubePlugin::BrowseData getSubscriptionsData(const InnertubeEndpoints::SubscriptionsResponse& response)
 {
     QtTubePlugin::BrowseData result;
-    for (const InnertubeObjects::Video& video : response.videos)
-        addVideo(result, video);
+    for (const auto& item : response.videos)
+        std::visit([&result](auto&& v) { addVideo(result, v); }, item);
     return result;
 }
 
