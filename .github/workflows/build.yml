@@ -67,13 +67,13 @@ jobs:
         shell: bash
         run: |
           echo "BUILD_PRODUCT_DIR=${{ env.BUILD_DIR }}/${{ env.BUILD_TYPE }}" >> $GITHUB_ENV
-          mkdir -p "${{ env.BUILD_PRODUCT_DIR }}/libs"
+          mkdir -p "${{ env.BUILD_DIR }}/${{ env.BUILD_TYPE }}/libs"
 
       - name: Set build product environment variable (non-Windows)
         if: runner.os != 'Windows'
         run: |
           echo "BUILD_PRODUCT_DIR=${{ env.BUILD_DIR }}" >> $GITHUB_ENV
-          mkdir -p "${{ env.BUILD_PRODUCT_DIR }}/libs"
+          mkdir -p "${{ env.BUILD_DIR }}/libs"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
