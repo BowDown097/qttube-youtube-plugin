@@ -11,17 +11,10 @@
 
 using namespace InnertubeEndpoints;
 
-QtTubePlugin::PluginMetadata g_metadata = {
-    .name = "YouTube",
-    .version = "1.0",
-    .description = "Built-in plugin for YouTube.",
-    .image = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/330px-YouTube_full-color_icon_%282017%29.svg.png",
-    .author = "BowDown097",
-    .url = "https://github.com/BowDown097/QtTube"
-};
-DECLARE_QTTUBE_PLUGIN(YouTubePlugin, g_metadata, YouTubePlayer, YouTubeSettings, YouTubeAuth)
+DECLARE_QTTUBE_PLUGIN(YouTubePlugin, YouTubePlayer, YouTubeSettings, YouTubeAuth)
 
 YouTubeAuth* g_auth = static_cast<YouTubeAuth*>(auth());
+QtTubePlugin::PluginMetadata g_metadata = metadata();
 YouTubeSettings* g_settings = static_cast<YouTubeSettings*>(settings());
 
 const QMap<int, QString> g_searchFeatureMap = {
