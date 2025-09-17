@@ -14,7 +14,6 @@ using namespace InnertubeEndpoints;
 DECLARE_QTTUBE_PLUGIN(YouTubePlugin, YouTubePlayer, YouTubeSettings, YouTubeAuth)
 
 YouTubeAuth* g_auth = static_cast<YouTubeAuth*>(auth());
-QtTubePlugin::PluginMetadata g_metadata = metadata();
 YouTubeSettings* g_settings = static_cast<YouTubeSettings*>(settings());
 
 const QMap<int, QString> g_searchFeatureMap = {

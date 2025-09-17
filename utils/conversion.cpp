@@ -16,8 +16,7 @@ QtTubePlugin::Channel convertChannel(const InnertubeObjects::Channel& channel)
         .channelId = channel.channelId,
         .channelName = channel.title.text,
         .channelUrlPrefix = "https://www.youtube.com/channel/",
-        .description = channel.descriptionSnippet.text,
-        .sourceMetadata = &g_metadata
+        .description = channel.descriptionSnippet.text
     };
 
     if (const InnertubeObjects::GenericThumbnail* recAvatar = channel.thumbnail.recommendedQuality(QSize(80, 80)))
@@ -46,8 +45,7 @@ QtTubePlugin::Channel convertChannel(
     QtTubePlugin::Channel result = {
         .channelId = owner.navigationEndpoint["browseEndpoint"]["browseId"].toString(),
         .channelName = owner.title.text,
-        .channelUrlPrefix = "https://www.youtube.com/channel/",
-        .sourceMetadata = &g_metadata
+        .channelUrlPrefix = "https://www.youtube.com/channel/"
     };
 
     if (const InnertubeObjects::GenericThumbnail* recAvatar = owner.thumbnail.recommendedQuality(QSize(48, 48)))
@@ -213,8 +211,7 @@ QtTubePlugin::Notification convertNotification(const InnertubeObjects::Notificat
     QtTubePlugin::Notification result = {
         .body = notification.shortMessage,
         .notificationId = notification.notificationId,
-        .sentTimeText = notification.sentTimeText,
-        .sourceMetadata = &g_metadata
+        .sentTimeText = notification.sentTimeText
     };
 
     if (const InnertubeObjects::GenericThumbnail* channelThumb = notification.channelIcon.recommendedQuality(QSize(48, 48)))
@@ -542,7 +539,6 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::CompactVideo& compactVi
     QtTubePlugin::Video result = {
         .lengthText = compactVideo.lengthDisplay().text,
         .progressSecs = compactVideo.navigationEndpoint["watchEndpoint"]["startTimeSeconds"].toInt(),
-        .sourceMetadata = &g_metadata,
         .title = QString(compactVideo.title.text).replace("\r\n", " "),
         .videoId = compactVideo.videoId,
         .videoUrlPrefix = "https://www.youtube.com/watch?v="
@@ -578,7 +574,6 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::DisplayAd& displayAd, b
     QtTubePlugin::Video result = {
         .lengthText = "Ad",
         .metadataText = displayAd.bodyText.text,
-        .sourceMetadata = &g_metadata,
         .thumbnailUrl = displayAd.image.recommendedQuality(QSize(205, 205))->url,
         .title = QString(displayAd.titleText.text).replace("\r\n", " ")
     };
@@ -598,7 +593,6 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::LockupViewModel& lockup
     QtTubePlugin::Video result = {
         .lengthText = lockup.lengthText(),
         .progressSecs = lockup.rendererContext["commandContext"]["onTap"]["innertubeCommand"]["watchEndpoint"]["startTimeSeconds"].toInt(),
-        .sourceMetadata = &g_metadata,
         .title = QString(lockup.metadata.title).replace("\r\n", " "),
         .videoId = lockup.contentId,
         .videoUrlPrefix = "https://www.youtube.com/watch?v="
@@ -650,7 +644,6 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::Reel& reel, bool useThu
         .isVerticalVideo = true,
         .lengthText = "SHORTS",
         .metadataText = reel.viewCountText.text,
-        .sourceMetadata = &g_metadata,
         .title = QString(reel.headline).replace("\r\n", " "),
         .videoId = reel.videoId,
         .videoUrlPrefix = "https://www.youtube.com/shorts/"
@@ -669,7 +662,6 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::ShortsLockupViewModel& 
         .isVerticalVideo = true,
         .lengthText = "SHORTS",
         .metadataText = shortsLockup.secondaryText,
-        .sourceMetadata = &g_metadata,
         .title = QString(shortsLockup.primaryText).replace("\r\n", " "),
         .videoId = shortsLockup.videoId,
         .videoUrlPrefix = "https://www.youtube.com/shorts/"
@@ -687,7 +679,6 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::Video& video, bool useT
     QtTubePlugin::Video result = {
         .lengthText = video.lengthDisplay().text,
         .progressSecs = video.navigationEndpoint["watchEndpoint"]["startTimeSeconds"].toInt(),
-        .sourceMetadata = &g_metadata,
         .title = QString(video.title.text).replace("\r\n", " "),
         .videoId = video.videoId,
         .videoUrlPrefix = "https://www.youtube.com/watch?v="
@@ -722,7 +713,6 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::VideoDisplayButtonGroup
 {
     QtTubePlugin::Video result = {
         .metadataText = video.badge.label,
-        .sourceMetadata = &g_metadata,
         .title = QString(video.title.text).replace("\r\n", " "),
         .videoId = video.videoId,
         .videoUrlPrefix = "https://www.youtube.com/watch?v="

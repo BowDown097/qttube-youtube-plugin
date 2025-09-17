@@ -51,5 +51,4 @@ private:
 };
 
 extern YouTubeAuth* g_auth;
-extern QtTubePlugin::PluginMetadata g_metadata;
 extern YouTubeSettings* g_settings;
