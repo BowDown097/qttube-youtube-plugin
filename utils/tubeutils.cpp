@@ -1,12 +1,33 @@
 #include "tubeutils.h"
-#include "httprequest.h"
 #include "innertube.h"
 #include "protobuf/protobufutil.h"
+#include "qttube-plugin/utils/httprequest.h"
 #include <QRandomGenerator>
 #include <QUrlQuery>
 
 namespace TubeUtils
 {
+    QList<std::pair<QByteArray, QByteArray>> getNeededHeaders(
+        const InnertubeContext* context, const InnertubeAuthStore* authStore)
+    {
+        QList<std::pair<QByteArray, QByteArray>> headers;
+
+        if (authStore->populated())
+        {
+            headers.emplaceBack("Authorization", authStore->generateSAPISIDHash().toUtf8());
+            headers.emplaceBack("Cookie", authStore->toCookieString().toUtf8());
+            headers.emplaceBack("X-Goog-AuthUser", "0");
+        }
+
+        headers.emplaceBack("Content-Type", "application/json");
+        headers.emplaceBack("X-Goog-Visitor-Id", context->client.visitorData.toLatin1());
+        headers.emplaceBack("X-Youtube-Client-Name", QByteArray::number(static_cast<int>(context->client.clientType)));
+        headers.emplaceBack("X-Youtube-Client-Version", context->client.clientVersion.toLatin1());
+        headers.emplaceBack("X-Origin", "https://www.youtube.com");
+
+        return headers;
+    }
+
     void reportPlayback(const InnertubeEndpoints::PlayerResponse& playerResp)
     {
         InnertubeContext* context = InnerTube::instance()->context();
@@ -57,9 +78,7 @@ namespace TubeUtils
         outPlaybackQuery.setQueryItems(map);
         outPlaybackUrl.setQuery(outPlaybackQuery);
 
-        HttpRequest()
-            .withHeaders(InnertubeEndpoints::EndpointMethods::getNeededHeaders(context, authStore))
-            .get(outPlaybackUrl);
+        HttpRequest().withHeaders(getNeededHeaders(context, authStore)).get(outPlaybackUrl);
     }
 
     // most logic courtesy of https://github.com/Rehike/Rehike

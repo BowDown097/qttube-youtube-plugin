@@ -1,9 +1,9 @@
 #include "replydata.h"
 #include "conversion.h"
-#include "httprequest.h"
 #include "innertube.h"
-#include "utils/stringutils.h"
-#include "utils/tubeutils.h"
+#include "qttube-plugin/utils/httprequest.h"
+#include "stringutils.h"
+#include "tubeutils.h"
 #include <QJsonDocument>
 
 const QList<QtTubePlugin::Emoji> g_platformEmojis = {
