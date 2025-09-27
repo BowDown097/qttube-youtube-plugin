@@ -17,8 +17,8 @@ void YouTubeSettings::init()
     disablePlayerInfoPanels = settings.value("player/disableInfoPanels", false).toBool();
     restoreAnnotations = settings.value("player/restoreAnnotations", false).toBool();
     // privacy
-    playbackTracking = settings.value("privacy/playbackTracking", true).toBool();
-    watchtimeTracking = settings.value("privacy/watchtimeTracking", true).toBool();
+    playbackTracking = settings.value("privacy/playbackTracking", false).toBool();
+    watchtimeTracking = settings.value("privacy/watchtimeTracking", false).toBool();
     // filtering
     hideSearchShelves = settings.value("filtering/hideSearchShelves", true).toBool();
     hideShorts = settings.value("filtering/hideShorts", false).toBool();

@@ -7,6 +7,7 @@
 #include "utils/replydata.h"
 #include "utils/stringutils.h"
 #include "youtubeplayer.h"
+#include <QMessageBox>
 #include <QUrlQuery>
 
 using namespace InnertubeEndpoints;
@@ -385,6 +386,25 @@ void YouTubePlugin::init()
         InnerTube::instance()->createClient(InnertubeClient::ClientType::WEB, "2.20250421.01.00", true);
         cache->insert("cver", InnerTube::instance()->context()->client.clientVersion.toLatin1());
     }
+
+    QObject::connect(g_auth, &YouTubeAuth::authenticateSuccess, [] {
+        if (!g_settings->playbackTracking || !g_settings->watchtimeTracking)
+        {
+            const QString title = QObject::tr("Enable Tracking?");
+            const QString text = QObject::tr(
+                "To sync your viewing activity with YouTube, playback and watchtime tracking need to be enabled.\n"
+                "These features are currently disabled to protect your privacy.\n"
+                "Would you like to enable tracking to allow syncing with your YouTube account?\n"
+                "You can also change this later in the plugin settings.");
+
+            if (QMessageBox::question(nullptr, title, text) == QMessageBox::Yes)
+            {
+                g_settings->playbackTracking = true;
+                g_settings->watchtimeTracking = true;
+                g_settings->save();
+            }
+        }
+    });
 }
 
 QtTubePlugin::Reply<void>* YouTubePlugin::rate(const QString& videoId, bool like, bool removing, std::any data)
