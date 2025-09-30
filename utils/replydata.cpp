@@ -288,7 +288,7 @@ void getNextData(QtTubePlugin::VideoData& data, const InnertubeEndpoints::NextRe
     if (!primaryInfo.superTitleLink.text.isEmpty())
         data.dateText += " | " + primaryInfo.superTitleLink.toRichText(true);
 
-    data.descriptionText = TubeUtils::unattribute(secondaryInfo.attributedDescription).toRichText(false);
+    data.descriptionText = secondaryInfo.attributedDescription.unattribute().toRichText(false);
 
     if (const QString& commentsContinuation = response.contents.results.commentsSectionContinuation; !commentsContinuation.isEmpty())
         data.continuations.comments = commentsContinuation;
