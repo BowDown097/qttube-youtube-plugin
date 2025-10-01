@@ -86,11 +86,11 @@ QtTubePlugin::ChannelHeader convertChannelHeader(
         result.bannerUrl = bestBanner->url;
 
     QString channelHandle, subCount, videosCount;
-    const auto& metadataRows = header.metadata.metadataRows;
+    const QList<InnertubeObjects::ContentMetadataRow>& metadataRows = header.metadata.metadataRows;
 
     if (metadataRows.size() > 0)
     {
-        if (const auto* dynamicText = std::get_if<QList<InnertubeObjects::DynamicText>>(&metadataRows[0]);
+        if (const auto* dynamicText = std::get_if<QList<InnertubeObjects::DynamicText>>(&metadataRows[0].content);
             dynamicText && !dynamicText->isEmpty())
         {
             channelHandle = dynamicText->at(0).content;
@@ -99,7 +99,7 @@ QtTubePlugin::ChannelHeader convertChannelHeader(
 
     if (metadataRows.size() > 1)
     {
-        if (const auto* dynamicText = std::get_if<QList<InnertubeObjects::DynamicText>>(&metadataRows[1]))
+        if (const auto* dynamicText = std::get_if<QList<InnertubeObjects::DynamicText>>(&metadataRows[1].content))
         {
             if (dynamicText->size() > 0)
                 subCount = dynamicText->at(0).content;
@@ -608,6 +608,72 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::DisplayAd& displayAd, b
     return result;
 }
 
+void getLockupMetadata(QtTubePlugin::Video& video, const InnertubeObjects::LockupViewModel& lockup)
+{
+    const QList<InnertubeObjects::ContentMetadataRow>& metadataRows = lockup.metadata.metadata.metadataRows;
+
+    if (metadataRows.size() > 1 && std::holds_alternative<QList<InnertubeObjects::DynamicText>>(metadataRows[1].content))
+    {
+        const auto& dynamicText = std::get<QList<InnertubeObjects::DynamicText>>(metadataRows[1].content);
+        QStringList metadataList;
+        for (const InnertubeObjects::DynamicText& part : dynamicText)
+            metadataList.append(part.content);
+        video.metadataText = metadataList.join(lockup.metadata.metadata.delimiter);
+    }
+    else if (metadataRows[0].contentType == "METADATA_ROW_CONTENT_TYPE_BYLINE")
+    {
+        const auto& dynamicText = std::get<QList<InnertubeObjects::DynamicText>>(metadataRows[0].content);
+        video.metadataText = dynamicText.value(1).content;
+    }
+
+    auto badgesIt = std::ranges::find_if(metadataRows, [](const InnertubeObjects::ContentMetadataRow& row) {
+        return std::holds_alternative<QList<InnertubeObjects::BadgeViewModel>>(row.content);
+    });
+    if (badgesIt != metadataRows.end())
+    {
+        const auto& badges = std::get<QList<InnertubeObjects::BadgeViewModel>>(badgesIt->content);
+        for (const InnertubeObjects::BadgeViewModel& badge : badges)
+        {
+            QtTubePlugin::Badge badgeItem = { .label = badge.badgeText, .tooltip = badge.badgeText };
+
+            if (badge.iconName == "SPONSORSHIP_STAR")
+            {
+                badgeItem.label.prepend("✪ ");
+                badgeItem.colorPalette.foreground = "#24c73f";
+                badgeItem.colorPalette.hoveredForeground = "#24c73f";
+            }
+
+            video.badges.append(std::move(badgeItem));
+        }
+    }
+
+    if (std::optional<InnertubeObjects::BasicChannel> owner = lockup.owner())
+    {
+        video.uploaderId = owner->id;
+        video.uploaderText = owner->name;
+        video.uploaderUrlPrefix = "https://www.youtube.com/channel/";
+        if (const InnertubeObjects::GenericThumbnail* recAvatar = owner->icon.recommendedQuality(QSize(205, 205)))
+            video.uploaderAvatarUrl = recAvatar->url;
+
+        const QJsonValue& attachmentRunsValue =
+            std::get<QList<InnertubeObjects::DynamicText>>(metadataRows[0].content)[0].attachmentRuns;
+        if (attachmentRunsValue.isArray())
+        {
+            const QJsonArray attachmentRuns = attachmentRunsValue.toArray();
+            for (const QJsonValue& attachmentRun : attachmentRuns)
+            {
+                const QString attachmentImage = attachmentRun
+                    ["element"]["type"]["imageType"]["image"]
+                    ["sources"][0]["clientResource"]["imageName"].toString();
+                if (attachmentImage == "CHECK_CIRCLE_FILLED")
+                    video.uploaderBadges.append(QtTubePlugin::Badge { .label = "✔" });
+                else if (attachmentImage == "AUDIO_BADGE")
+                    video.uploaderBadges.append(QtTubePlugin::Badge { .label = "♪" });
+            }
+        }
+    }
+}
+
 QtTubePlugin::Video convertVideo(const InnertubeObjects::LockupViewModel& lockup, bool useThumbnailFromData)
 {
     QtTubePlugin::Video result = {
@@ -618,68 +684,12 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::LockupViewModel& lockup
         .videoUrlPrefix = "https://www.youtube.com/watch?v="
     };
 
-    const auto& metadataRows = lockup.metadata.metadata.metadataRows;
-
-    if (metadataRows.size() > 1)
-    {
-        if (const auto* dynamicText = std::get_if<QList<InnertubeObjects::DynamicText>>(&metadataRows[1]))
-        {
-            QStringList metadataList;
-            for (const InnertubeObjects::DynamicText& part : (*dynamicText))
-                metadataList.append(part.content);
-            result.metadataText = metadataList.join(lockup.metadata.metadata.delimiter);
-        }
-    }
-
-    if (metadataRows.size() > 2)
-    {
-        if (const auto* badges = std::get_if<QList<InnertubeObjects::BadgeViewModel>>(&metadataRows[2]))
-        {
-            for (const InnertubeObjects::BadgeViewModel& badge : (*badges))
-            {
-                QtTubePlugin::Badge badgeItem = { .label = badge.badgeText, .tooltip = badge.badgeText };
-
-                if (badge.iconName == "SPONSORSHIP_STAR")
-                {
-                    badgeItem.label.prepend("✪ ");
-                    badgeItem.colorPalette.foreground = "#24c73f";
-                    badgeItem.colorPalette.hoveredForeground = "#24c73f";
-                }
-
-                result.badges.append(std::move(badgeItem));
-            }
-        }
-    }
-
-    if (std::optional<InnertubeObjects::BasicChannel> owner = lockup.owner())
-    {
-        result.uploaderId = owner->id;
-        result.uploaderText = owner->name;
-        result.uploaderUrlPrefix = "https://www.youtube.com/channel/";
-        if (const InnertubeObjects::GenericThumbnail* recAvatar = owner->icon.recommendedQuality(QSize(205, 205)))
-            result.uploaderAvatarUrl = recAvatar->url;
-
-        const QJsonValue& attachmentRunsValue =
-            std::get<QList<InnertubeObjects::DynamicText>>(metadataRows[0])[0].attachmentRuns;
-        if (attachmentRunsValue.isArray())
-        {
-            const QJsonArray attachmentRuns = attachmentRunsValue.toArray();
-            for (const QJsonValue& attachmentRun : attachmentRuns)
-            {
-                const QString attachmentImage = attachmentRun
-                    ["element"]["type"]["imageType"]["image"]
-                    ["sources"][0]["clientResource"]["imageName"].toString();
-                if (attachmentImage == "CHECK_CIRCLE_FILLED")
-                    result.uploaderBadges.append(QtTubePlugin::Badge { .label = "✔" });
-                else if (attachmentImage == "AUDIO_BADGE")
-                    result.uploaderBadges.append(QtTubePlugin::Badge { .label = "♪" });
-            }
-        }
-    }
-
     result.thumbnailUrl = useThumbnailFromData && !lockup.contentImage.image.isEmpty()
         ? lockup.contentImage.image.recommendedQuality(QSize(205, 205))->url
         : "https://img.youtube.com/vi/" + result.videoId + "/mqdefault.jpg";
+
+    if (!lockup.metadata.metadata.metadataRows.isEmpty())
+        getLockupMetadata(result, lockup);
 
     return result;
 }
