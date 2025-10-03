@@ -23,11 +23,11 @@
     font-size: 109% !important;
 }
 
-.ytp-menuitem {
+.ytp-menuitem:not(.ytp-menuitem-with-footer) {
     height: 33px !important;
 }
 
-.ytp-big-mode .ytp-menuitem {
+.ytp-big-mode .ytp-menuitem:not(.ytp-menuitem-with-footer) {
     height: 49px !important;
 }
 
@@ -64,19 +64,6 @@
 /* menu icon disabling */
 .ytp-menuitem-icon {
     display: none !important;
-}
-
-/* heatmap disabling */
-.ytp-heat-map-container, .ytp-tooltip-title {
-    display: none !important;
-}
-
-.ytp-tooltip-text {
-    top: 33px !important;
-}
-
-.ytp-big-mode .ytp-tooltip-text {
-    top: 41px !important;
 }
 
 /* 2019 chrome scaling */
@@ -144,6 +131,113 @@
 .ytp-videowall-still-round-medium .ytp-videowall-still-image {
     border-radius: 0;
 }
+
+/* Remove new rounded corners */
+.ytp-ce-medium-round .ytp-ce-expanding-overlay-background {
+    border-radius: 2px;
+}
+
+.ytp-ce-video.ytp-ce-medium-round, .ytp-ce-video.ytp-ce-large-round {
+    border-radius: unset;
+}
+
+.ytp-ce-video.ytp-ce-large-round, .ytp-ce-playlist.ytp-ce-large-round {
+    border-radius: unset;
+}
+
+.ytp-ce-video.ytp-ce-large-round, .ytp-ce-playlist.ytp-ce-large-round, .ytp-ce-large-round .ytp-ce-expanding-overlay-background {
+    border-radius: 2px;
+}
+
+.ytp-tooltip.ytp-rounded-tooltip:not(.ytp-preview) .ytp-tooltip-text {
+    border-radius: 2px;
+}
+
+.ytp-tooltip.ytp-rounded-tooltip.ytp-text-detail.ytp-preview {
+    border-radius: 2px;
+}
+
+.ytp-tooltip.ytp-rounded-tooltip.ytp-text-detail.ytp-preview .ytp-tooltip-bg {
+    border-radius: unset;
+}
+
+.ytp-offline-slate-bar {
+    border-radius: 2px;
+}
+
+.iv-card {
+    border-radius: unset;
+}
+
+.ytp-videowall-still-round-large .ytp-videowall-still-image {
+    border-radius: unset;
+}
+
+/* Fix premiere */
+
+.ytp-button.ytp-live-badge{
+    width:40px;
+}
+
+/* Fix Subscribe button */
+
+.ytp-sb-subscribe, a.ytp-sb-subscribe {
+    background-color: #f00;
+    color: #ffffff;
+    border-radius: 2px;
+    text-transform: uppercase;
+}
+
+.ytp-big-mode .ytp-sb-subscribe, .ytp-big-mode .ytp-sb-unsubscribe {
+    border-radius: 2px;
+}
+
+.ytp-sb-subscribe, .ytp-sb-unsubscribe {
+    border-radius: 2px;
+}
+
+.ytp-shorts-mode .ytp-sb-subscribe, .ytp-shorts-mode a.ytp-sb-subscribe {
+    background-color: #f00;
+}
+
+/* Fix tooltip */
+
+.ytp-tooltip.ytp-preview:not(.ytp-text-detail), .ytp-tooltip-bg {
+    border-radius: unset;
+}
+
+.ytp-progress-bar-snap .ytp-tooltip-bg {
+    outline: unset;
+    outline-offset: unset;
+}
+
+/* Fix unsubscribe */
+
+.ytp-sb-unsubscribe {
+    background-color: #eee;
+    color: rgba(17,17,17,.6);
+    text-transform: uppercase;
+}
+
+/* New */
+
+.ytp-promotooltip-container {
+    border-radius: 2px;
+}
+
+/* Fix progressbar */
+
+.ytp-play-progress {
+    background: #f03;
+}
+
+/* Paid content overlay link fix */
+
+.ytp-exp-ppp-update .ytp-paid-content-overlay-link {
+    border-radius: 2px;
+}
+
+/* Embed fixes */
 
 .ytp-embed:not(.ytp-big-mode) .ytp-popup {
     outline: 0 !important;
@@ -301,9 +395,4 @@
     transform: scaleY(0.6) translateY(-30%) translateY(1.5px);
     z-index: 42;
     transition: transform .1s cubic-bezier(0,0,0.2,1);
-}
-
-/* hide unnecessary share panel elements */
-.ytp-share-panel-close, .ytp-share-panel-service-button[aria-label="More"] {
-    display: none;
 }
