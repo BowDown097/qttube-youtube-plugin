@@ -95,7 +95,11 @@ TakeoutImportSubsPage::TakeoutImportSubsPage(QWidget* parent)
 void TakeoutImportSubsPage::verifyFile(const QString& fileName)
 {
     QFile csv(fileName);
-    csv.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!csv.open(QFile::ReadOnly | QFile::Text))
+    {
+        pathEdit->setText("Could not open file for reading");
+        return;
+    }
 
     QTextStream in(&csv);
     if (in.readLine() != "Channel Id,Channel Url,Channel Title")
@@ -131,7 +135,11 @@ TakeoutImportWatchHistoryPage::TakeoutImportWatchHistoryPage(QWidget* parent)
 void TakeoutImportWatchHistoryPage::verifyFile(const QString& fileName)
 {
     QFile json(fileName);
-    json.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!json.open(QFile::ReadOnly | QFile::Text))
+    {
+        pathEdit->setText("Could not open file for reading");
+        return;
+    }
 
     QJsonParseError parseError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(json.readAll(), &parseError);

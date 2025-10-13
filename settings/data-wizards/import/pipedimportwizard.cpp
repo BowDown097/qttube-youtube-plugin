@@ -41,7 +41,11 @@ PipedImportSubsPage::PipedImportSubsPage(QWidget* parent)
 void PipedImportSubsPage::verifyFile(const QString& fileName)
 {
     QFile json(fileName);
-    json.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!json.open(QFile::ReadOnly | QFile::Text))
+    {
+        pathEdit->setText("Could not open file for reading");
+        return;
+    }
 
     QJsonParseError parseError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(json.readAll(), &parseError);
@@ -127,7 +131,11 @@ void PipedImportWatchHistoryPage::tryWatch(const QString& videoId)
 void PipedImportWatchHistoryPage::verifyFile(const QString& fileName)
 {
     QFile json(fileName);
-    json.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!json.open(QFile::ReadOnly | QFile::Text))
+    {
+        pathEdit->setText("Could not open file for reading");
+        return;
+    }
 
     QJsonParseError parseError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(json.readAll(), &parseError);

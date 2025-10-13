@@ -85,7 +85,11 @@ void GrayjayImportSubsPage::trySub(const QString& channelId)
 void GrayjayImportSubsPage::verifyFile(const QString& fileName)
 {
     QFile json(fileName);
-    json.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!json.open(QFile::ReadOnly | QFile::Text))
+    {
+        pathEdit->setText("Could not open file for reading");
+        return;
+    }
 
     QJsonParseError parseError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(json.readAll(), &parseError);
@@ -124,7 +128,11 @@ GrayjayImportWatchHistoryPage::GrayjayImportWatchHistoryPage(QWidget* parent)
 void GrayjayImportWatchHistoryPage::verifyFile(const QString& fileName)
 {
     QFile json(fileName);
-    json.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!json.open(QFile::ReadOnly | QFile::Text))
+    {
+        pathEdit->setText("Could not open file for reading");
+        return;
+    }
 
     QJsonParseError parseError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(json.readAll(), &parseError);
