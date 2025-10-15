@@ -2,12 +2,48 @@
 #include "innertube/innertubereply.h"
 #include <ranges>
 
+void updateWithStyle(QtTubePlugin::Badge& badge, const QString& style)
+{
+    if (style == "BADGE_STYLE_TYPE_LIVE_NOW")
+    {
+        badge.colorPalette.background = "#cc012a";
+        badge.colorPalette.hoveredBackground = badge.colorPalette.background;
+        badge.colorPalette.foreground = "#fff";
+        badge.colorPalette.hoveredForeground = badge.colorPalette.foreground;
+    }
+    else if (style == "BADGE_STYLE_TYPE_MEMBERS_ONLY")
+    {
+        badge.label.prepend("✪ ");
+        badge.colorPalette.foreground = "#24c73f";
+        badge.colorPalette.hoveredForeground = badge.colorPalette.foreground;
+    }
+    else if (style == "BADGE_STYLE_TYPE_VERIFIED")
+    {
+        badge.label = "✔";
+    }
+    else if (style == "BADGE_STYLE_TYPE_VERIFIED_ARTIST")
+    {
+        badge.label = "♪";
+    }
+    else if (style == "BADGE_STYLE_TYPE_YPC")
+    {
+        badge.colorPalette.foreground = "#24c73f";
+        badge.colorPalette.hoveredForeground = badge.colorPalette.foreground;
+    }
+}
+
+QtTubePlugin::Badge convertBadge(const InnertubeObjects::BadgeViewModel& badge)
+{
+    QtTubePlugin::Badge result = { .label = badge.badgeText, .tooltip = badge.badgeText };
+    updateWithStyle(result, badge.badgeStyle);
+    return result;
+}
+
 QtTubePlugin::Badge convertBadge(const InnertubeObjects::MetadataBadge& badge)
 {
-    return QtTubePlugin::Badge {
-        .label = badge.style == "BADGE_STYLE_TYPE_VERIFIED_ARTIST" ? "♪" : "✔",
-        .tooltip = badge.tooltip
-    };
+    QtTubePlugin::Badge result = { .label = badge.label, .tooltip = badge.tooltip };
+    updateWithStyle(result, badge.style);
+    return result;
 }
 
 QtTubePlugin::Channel convertChannel(const InnertubeObjects::Channel& channel)
@@ -586,6 +622,9 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::CompactVideo& compactVi
         ? compactVideo.thumbnail.recommendedQuality(QSize(205, 205))->url
         : "https://img.youtube.com/vi/" + result.videoId + "/mqdefault.jpg";
 
+    for (const InnertubeObjects::MetadataBadge& badge : compactVideo.badges)
+        result.badges.append(convertBadge(badge));
+
     return result;
 }
 
@@ -633,18 +672,7 @@ void getLockupMetadata(QtTubePlugin::Video& video, const InnertubeObjects::Locku
     {
         const auto& badges = std::get<QList<InnertubeObjects::BadgeViewModel>>(badgesIt->content);
         for (const InnertubeObjects::BadgeViewModel& badge : badges)
-        {
-            QtTubePlugin::Badge badgeItem = { .label = badge.badgeText, .tooltip = badge.badgeText };
-
-            if (badge.iconName == "SPONSORSHIP_STAR")
-            {
-                badgeItem.label.prepend("✪ ");
-                badgeItem.colorPalette.foreground = "#24c73f";
-                badgeItem.colorPalette.hoveredForeground = "#24c73f";
-            }
-
-            video.badges.append(std::move(badgeItem));
-        }
+            video.badges.append(convertBadge(badge));
     }
 
     if (std::optional<InnertubeObjects::BasicChannel> owner = lockup.owner())
@@ -761,6 +789,9 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::Video& video, bool useT
     result.thumbnailUrl = useThumbnailFromData && !video.thumbnail.isEmpty()
         ? video.thumbnail.recommendedQuality(QSize(205, 205))->url
         : "https://img.youtube.com/vi/" + result.videoId + "/mqdefault.jpg";
+
+    for (const InnertubeObjects::MetadataBadge& badge : video.badges)
+        result.badges.append(convertBadge(badge));
 
     return result;
 }

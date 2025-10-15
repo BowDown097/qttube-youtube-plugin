@@ -12,6 +12,7 @@
 #include "innertube/responses/video/nextcontinuationdata.h"
 #include "youtubeplugin.h"
 
+QtTubePlugin::Badge convertBadge(const InnertubeObjects::BadgeViewModel& badge);
 QtTubePlugin::Badge convertBadge(const InnertubeObjects::MetadataBadge& badge);
 QtTubePlugin::Channel convertChannel(const InnertubeObjects::Channel& channel);
 QtTubePlugin::Channel convertChannel(
