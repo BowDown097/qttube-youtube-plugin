@@ -2,47 +2,63 @@
 #include "innertube/innertubereply.h"
 #include <ranges>
 
-void updateWithStyle(QtTubePlugin::Badge& badge, const QString& style)
-{
-    if (style == "BADGE_STYLE_TYPE_LIVE_NOW")
-    {
-        badge.colorPalette.background = "#cc012a";
-        badge.colorPalette.hoveredBackground = badge.colorPalette.background;
-        badge.colorPalette.foreground = "#fff";
-        badge.colorPalette.hoveredForeground = badge.colorPalette.foreground;
-    }
-    else if (style == "BADGE_STYLE_TYPE_MEMBERS_ONLY")
-    {
-        badge.label.prepend("✪ ");
-        badge.colorPalette.foreground = "#24c73f";
-        badge.colorPalette.hoveredForeground = badge.colorPalette.foreground;
-    }
-    else if (style == "BADGE_STYLE_TYPE_VERIFIED")
-    {
-        badge.label = "✔";
-    }
-    else if (style == "BADGE_STYLE_TYPE_VERIFIED_ARTIST")
-    {
-        badge.label = "♪";
-    }
-    else if (style == "BADGE_STYLE_TYPE_YPC")
-    {
-        badge.colorPalette.foreground = "#24c73f";
-        badge.colorPalette.hoveredForeground = badge.colorPalette.foreground;
-    }
-}
-
 QtTubePlugin::Badge convertBadge(const InnertubeObjects::BadgeViewModel& badge)
 {
     QtTubePlugin::Badge result = { .label = badge.badgeText, .tooltip = badge.badgeText };
-    updateWithStyle(result, badge.badgeStyle);
+
+    if (badge.badgeText == "BADGE_COMMERCE")
+    {
+        result.colorPalette.foreground = "#24c73f";
+        result.colorPalette.hoveredForeground = result.colorPalette.foreground;
+    }
+    else if (badge.badgeStyle == "BADGE_LIVE_NOW")
+    {
+        result.colorPalette.background = "#cc012a";
+        result.colorPalette.hoveredBackground = result.colorPalette.background;
+        result.colorPalette.foreground = "#fff";
+        result.colorPalette.hoveredForeground = result.colorPalette.foreground;
+    }
+    else if (badge.badgeStyle == "BADGE_MEMBERS_ONLY")
+    {
+        result.label.prepend("✪ ");
+        result.colorPalette.foreground = "#24c73f";
+        result.colorPalette.hoveredForeground = result.colorPalette.foreground;
+    }
+
     return result;
 }
 
 QtTubePlugin::Badge convertBadge(const InnertubeObjects::MetadataBadge& badge)
 {
     QtTubePlugin::Badge result = { .label = badge.label, .tooltip = badge.tooltip };
-    updateWithStyle(result, badge.style);
+
+    if (badge.style == "BADGE_STYLE_TYPE_LIVE_NOW")
+    {
+        result.colorPalette.background = "#cc012a";
+        result.colorPalette.hoveredBackground = result.colorPalette.background;
+        result.colorPalette.foreground = "#fff";
+        result.colorPalette.hoveredForeground = result.colorPalette.foreground;
+    }
+    else if (badge.style == "BADGE_STYLE_TYPE_MEMBERS_ONLY")
+    {
+        result.label.prepend("✪ ");
+        result.colorPalette.foreground = "#24c73f";
+        result.colorPalette.hoveredForeground = result.colorPalette.foreground;
+    }
+    else if (badge.style == "BADGE_STYLE_TYPE_VERIFIED")
+    {
+        result.label = "✔";
+    }
+    else if (badge.style == "BADGE_STYLE_TYPE_VERIFIED_ARTIST")
+    {
+        result.label = "♪";
+    }
+    else if (badge.style == "BADGE_STYLE_TYPE_YPC")
+    {
+        result.colorPalette.foreground = "#24c73f";
+        result.colorPalette.hoveredForeground = result.colorPalette.foreground;
+    }
+
     return result;
 }
 
