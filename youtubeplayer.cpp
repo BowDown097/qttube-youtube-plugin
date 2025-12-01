@@ -14,8 +14,13 @@ void PlayerInterceptor::interceptRequest(QWebEngineUrlRequestInfo& info)
         return;
     }
 
-    if (url.path() == "/api/stats/watchtime")
+    // Referer is required for initial request to work
+    if (url.path().startsWith("/embed/"))
+        info.setHttpHeader("Referer", "https://com");
+    // watchtime tracking for history, if it's enabled
+    else if (url.path() == "/api/stats/watchtime")
         info.block(!g_settings->watchtimeTracking);
+    // playback tracking for view count, if it's enabled
     else if (url.path() == "/api/stats/playback")
         info.block(!g_settings->playbackTracking);
 }

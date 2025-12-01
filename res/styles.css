@@ -378,6 +378,10 @@
     display: none !important;
 }
 
+.ytp-impression-link {
+    display: none;
+}
+
 /* SponsorBlock styles */
 .previewbar {
     display: inline-block;

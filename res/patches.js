@@ -12,7 +12,7 @@ waitForElement("#movie_player .ytp-error").then(function() {
     // this bypasses blocks on music videos and stuff like that. also probably helpful with login
     Object.assign(ytcfg.data_.INNERTUBE_CONTEXT.client, {
         clientName: "TVHTML5",
-        clientVersion: "7.20240724.13.00",
+        clientVersion: "5.20251105",
     });
 
     if (isAgeGated)
