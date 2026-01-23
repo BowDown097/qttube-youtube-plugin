@@ -40,8 +40,8 @@ QString getFileContents(const QString& path)
         return QString();
 }
 
-YouTubePlayer::YouTubePlayer(QWidget* parent)
-    : QtTubePlugin::WebPlayer(parent), m_interceptor(new PlayerInterceptor(this))
+YouTubePlayer::YouTubePlayer(QtTubePlugin::PlayerSettings* settings, QWidget* parent)
+    : QtTubePlugin::WebPlayer(settings, parent), m_interceptor(new PlayerInterceptor(this))
 {
     m_channel->registerObject("pluginSettings", g_settings);
 
@@ -74,13 +74,12 @@ YouTubePlayer::YouTubePlayer(QWidget* parent)
     }
 }
 
-void YouTubePlayer::play(const QString& videoId, int progress, QtTubePlugin::PlayerSettings* settings)
+void YouTubePlayer::play(const QString& videoId, int progress)
 {
-    m_channel->registerObject("playerSettings", settings);
     // h264 settings must be passed as a parameter because
     // the video format is determined before QWebChannel loads
     m_view->load(QUrl(QStringLiteral("https://youtube.com/embed/%1?t=%2&h264Only=%3&adblock=%4")
-        .arg(videoId).arg(progress).arg(settings->h264Only).arg(g_settings->blockAds)));
+        .arg(videoId).arg(progress).arg(settings()->h264Only).arg(g_settings->blockAds)));
 }
 
 void YouTubePlayer::seek(int progress)

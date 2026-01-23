@@ -15,8 +15,8 @@ private:
 class YouTubePlayer : public QtTubePlugin::WebPlayer
 {
 public:
-    explicit YouTubePlayer(QWidget* parent = nullptr);
-    void play(const QString& videoId, int progress, QtTubePlugin::PlayerSettings* settings) override;
+    explicit YouTubePlayer(QtTubePlugin::PlayerSettings* settings, QWidget* parent = nullptr);
+    void play(const QString& videoId, int progress) override;
     void seek(int progress) override;
 private:
     PlayerInterceptor* m_interceptor;
