@@ -165,19 +165,32 @@ QtTubePlugin::ChannelHeader convertChannelHeader(
     auto flatActions = header.actions.actionsRows
         | std::views::transform([](const auto& list) { return list.items; })
         | std::views::join;
+    bool foundSubscribeButton{};
 
     for (const auto& action : flatActions)
     {
         if (const auto* subscribeButton = std::get_if<InnertubeObjects::SubscribeButtonViewModel>(&action))
         {
             result.subscribeButton = convertSubscribeButton(*subscribeButton, subCount, subscribeButton->isSubscribed(mutations));
+            foundSubscribeButton = true;
+            break;
         }
-        else if (const auto* plainButton = std::get_if<InnertubeObjects::ButtonViewModel>(&action))
+        // logged out subscribe button should be the only one with a modalEndpoint
+        else if (const auto* plainButton = std::get_if<InnertubeObjects::ButtonViewModel>(&action);
+                 plainButton && plainButton->onTap["innertubeCommand"]["modalEndpoint"].isObject())
         {
-            // logged out subscribe button should be the only one with a modalEndpoint
-            if (plainButton->onTap["innertubeCommand"]["modalEndpoint"].isObject())
-                result.subscribeButton = convertSubscribeButton(*plainButton, subCount);
+            result.subscribeButton = convertSubscribeButton(*plainButton, subCount);
+            foundSubscribeButton = true;
+            break;
         }
+    }
+
+    // no subscribe button found, create a plain disabled one
+    if (!foundSubscribeButton)
+    {
+        result.subscribeButton.countText = subCount.left(subCount.lastIndexOf(' '));
+        result.subscribeButton.enabled = false;
+        result.subscribeButton.localization.subscribeText = "Subscribe";
     }
 
     return result;
@@ -427,6 +440,9 @@ QtTubePlugin::SubscribeButton convertSubscribeButton(
         .subscribeData = subscribeButton.onSubscribeEndpoints[0]["subscribeEndpoint"],
         .unsubscribeData = unsubscribeDialog["confirmButton"]["buttonRenderer"]["serviceEndpoint"]["unsubscribeEndpoint"]
     };
+
+    if (result.localization.subscribeText.isEmpty())
+        result.localization.subscribeText = "Subscribe";
 
     const InnertubeObjects::NotificationPreferenceButton& notifButton = subscribeButton.notificationPreferenceButton;
 
