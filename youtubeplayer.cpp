@@ -23,6 +23,10 @@ void PlayerInterceptor::interceptRequest(QWebEngineUrlRequestInfo& info)
     // playback tracking for view count, if it's enabled
     else if (url.path() == "/api/stats/playback")
         info.block(!g_settings->playbackTracking);
+    else if (url.path().contains("www-embed-player-pc-es6"))
+        info.redirect(url.toString().replace("www-embed-player-pc-es6", "www-embed-player"));
+    else if (url.path().contains("player_embed_es6"))
+        info.redirect(url.toString().replace("player_embed_es6", "player_es6"));
 }
 
 bool PlayerInterceptor::isTrackingUrl(const QUrl& url)

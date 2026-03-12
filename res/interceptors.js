@@ -1,3 +1,15 @@
+Object.defineProperty(window, "ytcfg", {
+    configurable: true,
+    set(value) {
+        if (value.data_) {
+            let config = value.data_.WEB_PLAYER_CONTEXT_CONFIGS.WEB_PLAYER_CONTEXT_CONFIG_ID_EMBEDDED_PLAYER;
+            config.disableOrganicUi = false;
+        }
+        _ytcfg = value;
+    },
+    get() { return _ytcfg; }
+});
+
 function createAdblockInterceptor() {
     JSON.parseOG = JSON.parse;
     JSON.parse = function(obj) {
