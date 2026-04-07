@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(qttube-youtube-plugin
-    VERSION 1.2.2
-    DESCRIPTION "A plugin providing YouTube support in QtTube."
-    HOMEPAGE_URL "https://github.com/BowDown097/qttube-youtube-plugin"
-    LANGUAGES CXX)
+project(qttube-youtube-plugin LANGUAGES CXX)
 
 add_library(qttube-youtube-plugin SHARED)
 
