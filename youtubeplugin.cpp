@@ -450,7 +450,7 @@ QtTubePlugin::ResolveUrlReply* YouTubePlugin::resolveUrlOrID(const QString& in)
 
     if (QRegularExpressionMatch channelMatch = channelRegex.match(in); channelMatch.lastCapturedIndex() >= 1)
     {
-        QtTubePlugin::delayedEmit(pluginReply, QtTubePlugin::ResolveUrlData {
+        QtTubePlugin::invokeQueued(pluginReply, &QtTubePlugin::ResolveUrlReply::finished, QtTubePlugin::ResolveUrlData {
             .data = channelMatch.captured(1),
             .target = QtTubePlugin::ResolveUrlTarget::Channel
         });
@@ -469,7 +469,7 @@ QtTubePlugin::ResolveUrlReply* YouTubePlugin::resolveUrlOrID(const QString& in)
                 continuePlayback = true;
         }
 
-        QtTubePlugin::delayedEmit(pluginReply, QtTubePlugin::ResolveUrlData {
+        QtTubePlugin::invokeQueued(pluginReply, &QtTubePlugin::ResolveUrlReply::finished, QtTubePlugin::ResolveUrlData {
             .continuePlayback = continuePlayback,
             .data = videoMatch.captured(1),
             .target = QtTubePlugin::ResolveUrlTarget::Video,
@@ -478,7 +478,7 @@ QtTubePlugin::ResolveUrlReply* YouTubePlugin::resolveUrlOrID(const QString& in)
     }
     else if (QUrl url(in); url.isValid() && (url.scheme() == "http" || url.scheme() == "https") && noDomainMatch(url.host()))
     {
-        QtTubePlugin::delayedEmit(pluginReply, QtTubePlugin::ResolveUrlData {
+        QtTubePlugin::invokeQueued(pluginReply, &QtTubePlugin::ResolveUrlReply::finished, QtTubePlugin::ResolveUrlData {
             .data = in,
             .target = QtTubePlugin::ResolveUrlTarget::PlainUrl
         });

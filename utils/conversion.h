@@ -7,7 +7,7 @@
 #include "innertube/objects/shelves/reelshelf.h"
 #include "innertube/objects/video/compactvideo.h"
 #include "innertube/objects/video/reel.h"
-#include "innertube/objects/video/watchnext/secondaryinfo/videoowner.h"
+#include "innertube/objects/video/watchnext/secondaryinfo/videosecondaryinfo.h"
 #include "innertube/responses/browse/homeresponse.h"
 #include "innertube/responses/video/nextcontinuationdata.h"
 #include "youtubeplugin.h"
@@ -16,7 +16,8 @@ QtTubePlugin::Badge convertBadge(const InnertubeObjects::BadgeViewModel& badge);
 QtTubePlugin::Badge convertBadge(const InnertubeObjects::MetadataBadge& badge);
 QtTubePlugin::Channel convertChannel(const InnertubeObjects::Channel& channel);
 QtTubePlugin::Channel convertChannel(
-    const InnertubeObjects::VideoOwner& owner, const InnertubeObjects::SubscribeButton& subscribeButton);
+    const InnertubeObjects::VideoSecondaryInfo& secondaryInfo,
+    const QList<InnertubeObjects::EntityMutation>& mutations);
 QtTubePlugin::ChannelHeader convertChannelHeader(const InnertubeObjects::ChannelC4Header& header);
 QtTubePlugin::ChannelHeader convertChannelHeader(
     const InnertubeObjects::ChannelPageHeader& header, const QList<InnertubeObjects::EntityMutation>& mutations);

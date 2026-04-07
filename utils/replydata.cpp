@@ -224,7 +224,7 @@ void getNextData(QtTubePlugin::VideoData& data, const InnertubeEndpoints::NextRe
     const InnertubeObjects::VideoPrimaryInfo& primaryInfo = response.contents.results.primaryInfo;
     const InnertubeObjects::VideoSecondaryInfo& secondaryInfo = response.contents.results.secondaryInfo;
 
-    data.channel = convertChannel(secondaryInfo.owner, secondaryInfo.subscribeButton);
+    data.channel = convertChannel(secondaryInfo, response.mutations);
     data.viewCountText = g_settings->condensedCounts && !primaryInfo.viewCount.isLive
         ? primaryInfo.viewCount.extraShortViewCount.text + " views"
         : primaryInfo.viewCount.viewCount.text;

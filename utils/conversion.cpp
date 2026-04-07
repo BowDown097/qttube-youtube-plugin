@@ -92,10 +92,14 @@ QtTubePlugin::Channel convertChannel(const InnertubeObjects::Channel& channel)
 }
 
 QtTubePlugin::Channel convertChannel(
-    const InnertubeObjects::VideoOwner& owner, const InnertubeObjects::SubscribeButton& subscribeButton)
+    const InnertubeObjects::VideoSecondaryInfo& secondaryInfo,
+    const QList<InnertubeObjects::EntityMutation>& mutations)
 {
+    const InnertubeObjects::VideoOwner& owner = secondaryInfo.owner;
+    const auto& subscribeButton = secondaryInfo.subscribeButton;
+
     QtTubePlugin::Channel result = {
-        .channelId = owner.navigationEndpoint["browseEndpoint"]["browseId"].toString(),
+        .channelId = owner.channelId(),
         .channelName = owner.title.text,
         .channelUrlPrefix = "https://www.youtube.com/channel/"
     };
@@ -104,7 +108,18 @@ QtTubePlugin::Channel convertChannel(
         result.channelAvatarUrl = recAvatar->url;
     for (const InnertubeObjects::MetadataBadge& badge : owner.badges)
         result.channelBadges.append(convertBadge(badge));
-    result.subscribeButton = convertSubscribeButton(subscribeButton, owner.subscriberCountText.text);
+
+    if (const auto* viewModel = std::get_if<InnertubeObjects::SubscribeButtonViewModel>(&subscribeButton))
+    {
+        auto it = std::ranges::find(mutations,
+            viewModel->subscribeButtonContent.subscribeStateKey, &InnertubeObjects::EntityMutation::entityKey);
+        bool subscribed = it != mutations.end() && it->payload["subscriptionStateEntity"]["subscribed"].toBool();
+        result.subscribeButton = convertSubscribeButton(*viewModel, owner.subscriberCountText.text, subscribed);
+    }
+    else if (const auto* button = std::get_if<InnertubeObjects::SubscribeButton>(&subscribeButton))
+    {
+        result.subscribeButton = convertSubscribeButton(*button, owner.subscriberCountText.text);
+    }
 
     return result;
 }
@@ -578,7 +593,7 @@ void processSectionList(const QJsonValue& sectionList, QList<QtTubePlugin::Chann
                 if (shelfItems.isEmpty())
                     continue;
 
-                const QString shelfKey = shelfItems.begin()->toObject().begin().key();
+                const QString shelfKey = shelfItems.begin()->toObject().constBegin().key();
                 if (shelfKey == "channelRenderer" || shelfKey == "gridChannelRenderer")
                 {
                     QtTubePlugin::Shelf<QtTubePlugin::Channel> channelShelf;
