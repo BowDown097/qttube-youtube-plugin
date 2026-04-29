@@ -105,16 +105,16 @@ QByteArray YouTubePlugin::compileSearchParams(const QList<std::pair<QString, int
 QtTubePlugin::AccountReply* YouTubePlugin::getActiveAccount()
 {
     QtTubePlugin::AccountReply* pluginReply = QtTubePlugin::AccountReply::create();
-    InnertubeReply<AccountMenu>* accountMenuReply = InnerTube::instance()->get<AccountMenu>();
+    InnertubeReply<AccountsList>* accountsReply = InnerTube::instance()->get<AccountsList>();
     InnertubeReply<UnseenCount>* unseenCountReply = InnerTube::instance()->get<UnseenCount>();
 
     auto data = std::make_shared<QtTubePlugin::InitialAccountData>();
     auto state = std::make_shared<QtTubePlugin::MultiCompletionState<2>>();
 
-    QObject::connect(accountMenuReply, &InnertubeReply<AccountMenu>::exception, [=](const InnertubeException& ex) {
+    QObject::connect(accountsReply, &InnertubeReply<AccountsList>::exception, [=](const InnertubeException& ex) {
         emit pluginReply->exception(convertException(ex));
     });
-    QObject::connect(accountMenuReply, &InnertubeReply<AccountMenu>::finished, [=](const AccountMenu& endpoint) {
+    QObject::connect(accountsReply, &InnertubeReply<AccountsList>::finished, [=](const AccountsList& endpoint) {
         getAccountData(*data, endpoint.response);
         if (state->hit())
             emit pluginReply->finished(*data);

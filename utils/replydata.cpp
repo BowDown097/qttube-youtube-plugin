@@ -70,12 +70,17 @@ const QList<QtTubePlugin::Emoji> g_platformEmojis = {
     QtTubePlugin::Emoji { .representation = "UCkszU2WH9gy1mb0dV-11UJg/egJ1XufTKYfegwOo57ewAg", .shortcodes = {":shelterin:"}, .url = "https://yt3.ggpht.com/gjC5x98J4BoVSEPfFJaoLtc4tSBGSEdIlfL2FV4iJG9uGNykDP9oJC_QxAuBTJy6dakPxVeC=w48-h48-c-k-nd" }
 };
 
-void getAccountData(QtTubePlugin::InitialAccountData& data, const InnertubeEndpoints::AccountMenuResponse& response)
+void getAccountData(QtTubePlugin::InitialAccountData& data, const InnertubeEndpoints::AccountsListResponse& response)
 {
-    data.channelId = response.header.manageAccountTitle.runs.value(0).navigationEndpoint["browseEndpoint"]["browseId"].toString();
-    data.displayName = response.header.accountName;
-    data.handle = response.header.channelHandle;
-    if (const InnertubeObjects::GenericThumbnail* avatar = response.header.accountPhoto.bestQuality())
+    auto accountItem = std::ranges::find_if(response.page.contents, &InnertubeObjects::AccountItem::isSelected);
+    if (accountItem == response.page.contents.end())
+        return;
+
+    data.channelId = accountItem->channelOrPageId();
+    data.displayName = accountItem->accountName.text;
+    data.handle = accountItem->channelHandle.text;
+
+    if (const InnertubeObjects::GenericThumbnail* avatar = accountItem->accountPhoto.bestQuality())
         data.avatarUrl = avatar->url;
 }
 
