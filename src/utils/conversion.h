@@ -1,15 +1,15 @@
 #pragma once
-#include "innertube/innertubeexception.h"
-#include "innertube/objects/channel/channel.h"
-#include "innertube/objects/channel/channelc4header.h"
-#include "innertube/objects/channel/channelpageheader.h"
-#include "innertube/objects/notification/notification.h"
-#include "innertube/objects/shelves/reelshelf.h"
-#include "innertube/objects/video/compactvideo.h"
-#include "innertube/objects/video/reel.h"
-#include "innertube/objects/video/watchnext/secondaryinfo/videosecondaryinfo.h"
-#include "innertube/responses/browse/homeresponse.h"
-#include "innertube/responses/video/nextcontinuationdata.h"
+#include <innertube/innertubeexception.h>
+#include <innertube/objects/channel/channel.h>
+#include <innertube/objects/channel/channelc4header.h>
+#include <innertube/objects/channel/channelpageheader.h>
+#include <innertube/objects/notification/notification.h>
+#include <innertube/objects/shelves/reelshelf.h>
+#include <innertube/objects/video/compactvideo.h>
+#include <innertube/objects/video/reel.h>
+#include <innertube/objects/video/watchnext/secondaryinfo/videosecondaryinfo.h>
+#include <innertube/responses/browse/homeresponse.h>
+#include <innertube/responses/video/nextcontinuationdata.h>
 #include "youtubeplugin.h"
 
 QtTubePlugin::Badge convertBadge(const InnertubeObjects::BadgeViewModel& badge);

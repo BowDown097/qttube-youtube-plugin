@@ -1,8 +1,8 @@
 #include "youtubesettings.h"
 #include "youtubesettingsform.h"
-#include "innertube/objects/video/compactvideo.h"
-#include "innertube/objects/video/video.h"
-#include "innertube/objects/viewmodels/lockupviewmodel.h"
+#include <innertube/objects/video/compactvideo.h>
+#include <innertube/objects/video/video.h>
+#include <innertube/objects/viewmodels/lockupviewmodel.h>
 
 void YouTubeSettings::init()
 {

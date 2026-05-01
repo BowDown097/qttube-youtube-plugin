@@ -1,5 +1,5 @@
 #include "conversion.h"
-#include "innertube/innertubereply.h"
+#include <innertube/innertubereply.h>
 #include <ranges>
 
 QtTubePlugin::Badge convertBadge(const InnertubeObjects::BadgeViewModel& badge)

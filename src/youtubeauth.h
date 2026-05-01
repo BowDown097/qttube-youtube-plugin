@@ -1,6 +1,6 @@
 #pragma once
-#include "qttube-plugin/components/auth/authstore.h"
-#include "qttube-plugin/components/auth/webauthroutine.h"
+#include <qttube-plugin/components/auth/authstore.h>
+#include <qttube-plugin/components/auth/webauthroutine.h>
 
 struct CredentialSet : QtTubePlugin::AuthUser
 {

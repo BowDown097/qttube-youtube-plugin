@@ -1,6 +1,6 @@
 [submodule "innertube-qt"]
-	path = innertube-qt
+	path = deps/innertube-qt
 	url = https://github.com/BowDown097/innertube-qt
 [submodule "interface"]
-	path = interface
+	path = deps/interface
 	url = https://github.com/BowDown097/qttube-plugin-interface

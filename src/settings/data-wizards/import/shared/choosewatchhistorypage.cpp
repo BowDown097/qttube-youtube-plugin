@@ -1,7 +1,6 @@
 #include "choosewatchhistorypage.h"
-#include "innertube.h"
 #include "utils/tubeutils.h"
-#include <QDebug>
+#include <innertube.h>
 
 constexpr QLatin1String Subtitle("Check the videos you wish to add to your watch history, then press Start.");
 

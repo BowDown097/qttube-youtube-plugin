@@ -1,5 +1,5 @@
 #pragma once
-#include "qttube-plugin/components/player/webplayer.h"
+#include <qttube-plugin/components/player/webplayer.h>
 #include <QWebEngineUrlRequestInterceptor>
 
 class PlayerInterceptor : public QWebEngineUrlRequestInterceptor

@@ -1,7 +1,7 @@
 #include "channelfiltertable.h"
 #include "ui_channelfiltertable.h"
-#include "innertube.h"
 #include "youtubeplugin.h"
+#include <innertube.h>
 #include <QMessageBox>
 
 ChannelFilterTable::~ChannelFilterTable() { delete ui; }

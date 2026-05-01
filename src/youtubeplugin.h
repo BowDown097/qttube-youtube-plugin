@@ -1,7 +1,7 @@
 #pragma once
-#include "qttube-plugin/plugininterface.h"
 #include "settings/youtubesettings.h"
 #include "youtubeauth.h"
+#include <qttube-plugin/plugininterface.h>
 
 class YouTubePlugin : public QtTubePlugin::PluginInterface
 {

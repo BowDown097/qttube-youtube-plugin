@@ -1,5 +1,5 @@
 #include "choosesubspage.h"
-#include "innertube.h"
+#include <innertube.h>
 
 constexpr QLatin1String Subtitle("Check the channels you wish to subscribe to, then press Start.");
 

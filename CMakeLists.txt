@@ -6,7 +6,7 @@ add_library(qttube-youtube-plugin SHARED)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-include(interface/QtTubePlugin.cmake)
+include(deps/interface/QtTubePlugin.cmake)
 create_qttube_plugin(qttube-youtube-plugin)
 
 set_target_properties(qttube-youtube-plugin PROPERTIES
@@ -15,60 +15,60 @@ set_target_properties(qttube-youtube-plugin PROPERTIES
 
 target_sources(qttube-youtube-plugin
     PRIVATE
-        youtubeauth.cpp
-        youtubeplayer.cpp
-        youtubeplugin.cpp
         res/resources.qrc
-        settings/channelfiltertable.cpp
-        settings/channelfiltertable.ui
-        settings/youtubesettings.cpp
-        settings/youtubesettingsform.cpp
-        settings/youtubesettingsform.ui
-        settings/data-wizards/basicinfopage.cpp
-        settings/data-wizards/datawizard.cpp
-        settings/data-wizards/entityselecttablemodel.cpp
-        settings/data-wizards/intropage.cpp
-        settings/data-wizards/import/grayjayimportwizard.cpp
-        settings/data-wizards/import/newpipeimportwizard.cpp
-        settings/data-wizards/import/pipedimportwizard.cpp
-        settings/data-wizards/import/takeoutimportwizard.cpp
-        settings/data-wizards/import/shared/chooseentitiespage.cpp
-        settings/data-wizards/import/shared/choosesubspage.cpp
-        settings/data-wizards/import/shared/choosewatchhistorypage.cpp
-        settings/data-wizards/import/shared/importfileselectpage.cpp
-        settings/data-wizards/richtableview/richitemdelegate.cpp
-        settings/data-wizards/richtableview/richtableview.cpp
-        utils/conversion.cpp
-        utils/replydata.cpp
-        utils/stringutils.cpp
-        utils/tubeutils.cpp
+        src/youtubeauth.cpp
+        src/youtubeplayer.cpp
+        src/youtubeplugin.cpp
+        src/settings/channelfiltertable.cpp
+        src/settings/channelfiltertable.ui
+        src/settings/youtubesettings.cpp
+        src/settings/youtubesettingsform.cpp
+        src/settings/youtubesettingsform.ui
+        src/settings/data-wizards/basicinfopage.cpp
+        src/settings/data-wizards/datawizard.cpp
+        src/settings/data-wizards/entityselecttablemodel.cpp
+        src/settings/data-wizards/intropage.cpp
+        src/settings/data-wizards/import/grayjayimportwizard.cpp
+        src/settings/data-wizards/import/newpipeimportwizard.cpp
+        src/settings/data-wizards/import/pipedimportwizard.cpp
+        src/settings/data-wizards/import/takeoutimportwizard.cpp
+        src/settings/data-wizards/import/shared/chooseentitiespage.cpp
+        src/settings/data-wizards/import/shared/choosesubspage.cpp
+        src/settings/data-wizards/import/shared/choosewatchhistorypage.cpp
+        src/settings/data-wizards/import/shared/importfileselectpage.cpp
+        src/settings/data-wizards/richtableview/richitemdelegate.cpp
+        src/settings/data-wizards/richtableview/richtableview.cpp
+        src/utils/conversion.cpp
+        src/utils/replydata.cpp
+        src/utils/stringutils.cpp
+        src/utils/tubeutils.cpp
     PUBLIC
         FILE_SET HEADERS FILES
-            youtubeauth.h
-            youtubeplayer.h
-            youtubeplugin.h
-            settings/channelfiltertable.h
-            settings/youtubesettings.h
-            settings/youtubesettingsform.h
-            settings/data-wizards/basicinfopage.h
-            settings/data-wizards/conclusionpage.h
-            settings/data-wizards/datawizard.h
-            settings/data-wizards/entityselecttablemodel.h
-            settings/data-wizards/intropage.h
-            settings/data-wizards/import/grayjayimportwizard.h
-            settings/data-wizards/import/newpipeimportwizard.h
-            settings/data-wizards/import/pipedimportwizard.h
-            settings/data-wizards/import/takeoutimportwizard.h
-            settings/data-wizards/import/shared/chooseentitiespage.h
-            settings/data-wizards/import/shared/choosesubspage.h
-            settings/data-wizards/import/shared/choosewatchhistorypage.h
-            settings/data-wizards/import/shared/importfileselectpage.h
-            settings/data-wizards/richtableview/richitemdelegate.h
-            settings/data-wizards/richtableview/richtableview.h
-            utils/conversion.h
-            utils/replydata.h
-            utils/stringutils.h
-            utils/tubeutils.h)
+            src/youtubeauth.h
+            src/youtubeplayer.h
+            src/youtubeplugin.h
+            src/settings/channelfiltertable.h
+            src/settings/youtubesettings.h
+            src/settings/youtubesettingsform.h
+            src/settings/data-wizards/basicinfopage.h
+            src/settings/data-wizards/conclusionpage.h
+            src/settings/data-wizards/datawizard.h
+            src/settings/data-wizards/entityselecttablemodel.h
+            src/settings/data-wizards/intropage.h
+            src/settings/data-wizards/import/grayjayimportwizard.h
+            src/settings/data-wizards/import/newpipeimportwizard.h
+            src/settings/data-wizards/import/pipedimportwizard.h
+            src/settings/data-wizards/import/takeoutimportwizard.h
+            src/settings/data-wizards/import/shared/chooseentitiespage.h
+            src/settings/data-wizards/import/shared/choosesubspage.h
+            src/settings/data-wizards/import/shared/choosewatchhistorypage.h
+            src/settings/data-wizards/import/shared/importfileselectpage.h
+            src/settings/data-wizards/richtableview/richitemdelegate.h
+            src/settings/data-wizards/richtableview/richtableview.h
+            src/utils/conversion.h
+            src/utils/replydata.h
+            src/utils/stringutils.h
+            src/utils/tubeutils.h)
 
 find_package(Qt6 REQUIRED COMPONENTS Sql)
 
@@ -81,8 +81,9 @@ endif()
 
 option(ENABLE_WEB_COMPONENTS "" ON)
 
-add_subdirectory(innertube-qt)
-add_subdirectory(interface)
+add_subdirectory(deps/innertube-qt)
+add_subdirectory(deps/interface)
 
+target_include_directories(qttube-youtube-plugin PRIVATE src)
 target_link_libraries(qttube-youtube-plugin PRIVATE innertube-qt Qt::Sql QtTube::PluginInterface)
 

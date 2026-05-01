@@ -1,7 +1,7 @@
 #include "tubeutils.h"
-#include "innertube.h"
-#include "protobuf/protobufutil.h"
 #include "qttube-plugin/utils/httprequest.h"
+#include <innertube.h>
+#include <protobuf/protobufutil.h>
 #include <QRandomGenerator>
 #include <QUrlQuery>
 

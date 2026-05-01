@@ -1,6 +1,6 @@
 #include "youtubeauth.h"
-#include "innertube.h"
-#include "protobuf/protobufcompiler.h"
+#include <innertube.h>
+#include <protobuf/protobufcompiler.h>
 
 void YouTubeAuthRoutine::onNewCookie(const QByteArray& name, const QByteArray& value)
 {

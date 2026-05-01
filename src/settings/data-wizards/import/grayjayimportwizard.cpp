@@ -1,7 +1,7 @@
 #include "grayjayimportwizard.h"
-#include "innertube.h"
 #include "shared/choosesubspage.h"
 #include "shared/choosewatchhistorypage.h"
+#include <innertube.h>
 #include <QCheckBox>
 #include <QFile>
 #include <QJsonArray>

@@ -1,12 +1,12 @@
 #include "youtubeplugin.h"
-#include "innertube.h"
-#include "qttube-plugin/utils/localcache.h"
-#include "qttube-plugin/utils/replyutils.h"
-#include "protobuf/protobufcompiler.h"
+#include "youtubeplayer.h"
 #include "utils/conversion.h"
 #include "utils/replydata.h"
 #include "utils/stringutils.h"
-#include "youtubeplayer.h"
+#include <innertube.h>
+#include <protobuf/protobufcompiler.h>
+#include <qttube-plugin/utils/localcache.h>
+#include <qttube-plugin/utils/replyutils.h>
 #include <QMessageBox>
 #include <QUrlQuery>
 
