@@ -567,7 +567,9 @@ void processRichGrid(const QJsonValue& richGrid, QList<QtTubePlugin::ChannelTabD
     for (const QJsonValue& v : contents)
     {
         const QJsonValue itemContent = v["richItemRenderer"]["content"];
-        if (const QJsonValue video = itemContent["videoRenderer"]; video.isObject())
+        if (const QJsonValue lockup = itemContent["lockupViewModel"]; lockup.isObject())
+            items.append(convertVideo(InnertubeObjects::LockupViewModel(lockup), true));
+        else if (const QJsonValue video = itemContent["videoRenderer"]; video.isObject())
             items.append(convertVideo(InnertubeObjects::Video(video), true));
         else if (const QJsonValue reel = itemContent["reelItemRenderer"]; reel.isObject())
             items.append(convertVideo(InnertubeObjects::Reel(video), true));
@@ -594,13 +596,13 @@ void processSectionList(const QJsonValue& sectionList, QList<QtTubePlugin::Chann
                     continue;
 
                 const QString shelfKey = shelfItems.begin()->toObject().constBegin().key();
-                if (shelfKey == "channelRenderer" || shelfKey == "gridChannelRenderer")
+                if (shelfKey == "lockupViewModel")
                 {
-                    QtTubePlugin::Shelf<QtTubePlugin::Channel> channelShelf;
-                    channelShelf.title = InnertubeObjects::InnertubeString(shelf["title"]).text;
+                    QtTubePlugin::Shelf<QtTubePlugin::Video> videoShelf;
+                    videoShelf.title = InnertubeObjects::InnertubeString(shelf["title"]).text;
                     for (const QJsonValue& v3 : shelfItems)
-                        channelShelf.contents.append(convertChannel(InnertubeObjects::Channel(v3[shelfKey])));
-                    items.append(channelShelf);
+                        videoShelf.contents.append(convertVideo(InnertubeObjects::LockupViewModel(v3[shelfKey]), true));
+                    items.append(videoShelf);
                 }
                 else if (shelfKey == "gridVideoRenderer" || shelfKey == "videoRenderer")
                 {
@@ -609,6 +611,14 @@ void processSectionList(const QJsonValue& sectionList, QList<QtTubePlugin::Chann
                     for (const QJsonValue& v3 : shelfItems)
                         videoShelf.contents.append(convertVideo(InnertubeObjects::Video(v3[shelfKey]), true));
                     items.append(videoShelf);
+                }
+                else if (shelfKey == "channelRenderer" || shelfKey == "gridChannelRenderer")
+                {
+                    QtTubePlugin::Shelf<QtTubePlugin::Channel> channelShelf;
+                    channelShelf.title = InnertubeObjects::InnertubeString(shelf["title"]).text;
+                    for (const QJsonValue& v3 : shelfItems)
+                        channelShelf.contents.append(convertChannel(InnertubeObjects::Channel(v3[shelfKey])));
+                    items.append(channelShelf);
                 }
             }
             else if (const QJsonValue continuation = v2["continuationItemRenderer"]; continuation.isObject())
@@ -798,8 +808,8 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::ShortsLockupViewModel& 
         .videoUrlPrefix = "https://www.youtube.com/shorts/"
     };
 
-    result.thumbnailUrl = useThumbnailFromData && !shortsLockup.thumbnail.isEmpty()
-        ? shortsLockup.thumbnail.recommendedQuality(QSize(205, 205))->url
+    result.thumbnailUrl = useThumbnailFromData && !shortsLockup.thumbnailViewModel.image.isEmpty()
+        ? shortsLockup.thumbnailViewModel.image.recommendedQuality(QSize(205, 205))->url
         : "https://img.youtube.com/vi/" + result.videoId + "/mqdefault.jpg";
 
     return result;
