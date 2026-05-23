@@ -40,13 +40,20 @@ QtTubePlugin::SubscribeButton convertSubscribeButton(
 QtTubePlugin::SubscribeButton convertSubscribeButton(
     const InnertubeObjects::SubscribeButtonViewModel& subscribeButton, const QString& countText, bool subscribed);
 QtTubePlugin::ChannelTabData convertTab(const QJsonValue& tabRenderer, std::any& continuationData);
-QtTubePlugin::Video convertVideo(const InnertubeObjects::CompactVideo& compactVideo, bool useThumbnailFromData);
-QtTubePlugin::Video convertVideo(const InnertubeObjects::DisplayAd& displayAd, bool useThumbnailFromData);
-QtTubePlugin::Video convertVideo(const InnertubeObjects::LockupViewModel& lockup, bool useThumbnailFromData);
-QtTubePlugin::Video convertVideo(const InnertubeObjects::Reel& reel, bool useThumbnailFromData);
-QtTubePlugin::Video convertVideo(const InnertubeObjects::ShortsLockupViewModel& shortsLockup, bool useThumbnailFromData);
-QtTubePlugin::Video convertVideo(const InnertubeObjects::Video& video, bool useThumbnailFromData);
-QtTubePlugin::Video convertVideo(const InnertubeObjects::VideoDisplayButtonGroup& video, bool useThumbnailFromData);
+QtTubePlugin::Video convertVideo(
+    const InnertubeObjects::CompactVideo& compactVideo, bool useThumbnailFromData);
+QtTubePlugin::Video convertVideo(
+    const InnertubeObjects::DisplayAd& displayAd, bool useThumbnailFromData);
+QtTubePlugin::Video convertVideo(
+    const InnertubeObjects::LockupViewModel& lockup, bool useThumbnailFromData, bool getOwner = true);
+QtTubePlugin::Video convertVideo(
+    const InnertubeObjects::Reel& reel, bool useThumbnailFromData);
+QtTubePlugin::Video convertVideo(
+    const InnertubeObjects::ShortsLockupViewModel& shortsLockup, bool useThumbnailFromData);
+QtTubePlugin::Video convertVideo(
+    const InnertubeObjects::Video& video, bool useThumbnailFromData);
+QtTubePlugin::Video convertVideo(
+    const InnertubeObjects::VideoDisplayButtonGroup& video, bool useThumbnailFromData);
 
 template<typename T>
 void addChannel(QList<T>& channelList, const QtTubePlugin::Channel& channel)

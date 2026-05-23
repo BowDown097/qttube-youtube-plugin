@@ -2,6 +2,141 @@
 #include <innertube/innertubereply.h>
 #include <ranges>
 
+using DynamicTextList = QList<InnertubeObjects::DynamicText>;
+
+QString getJoinedDynamicTexts(const DynamicTextList& dynamicTexts, const QString& delimiter)
+{
+    QStringList metadataList;
+    for (const InnertubeObjects::DynamicText& dynamicText : dynamicTexts)
+        metadataList.append(dynamicText.content);
+    return metadataList.join(delimiter);
+}
+
+void getLockupMetadata(QtTubePlugin::Video& video, const InnertubeObjects::LockupViewModel& lockup, bool getOwner)
+{
+    const QString& delimiter = lockup.metadata.metadata.delimiter;
+    const QList<InnertubeObjects::ContentMetadataRow>& metadataRows = lockup.metadata.metadata.metadataRows;
+
+    if (metadataRows.size() > 1)
+    {
+        if (auto* dynamicTexts = std::get_if<DynamicTextList>(&metadataRows[1].content))
+            video.metadataText = getJoinedDynamicTexts(*dynamicTexts, delimiter);
+        else if (auto* dynamicTexts = std::get_if<DynamicTextList>(&metadataRows[0].content))
+            video.metadataText = getJoinedDynamicTexts(*dynamicTexts, delimiter);
+    }
+    else if (!metadataRows.isEmpty())
+    {
+        if (metadataRows[0].contentType == "METADATA_ROW_CONTENT_TYPE_BYLINE")
+            video.metadataText = std::get<DynamicTextList>(metadataRows[0].content).value(1).content;
+        else if (auto* dynamicTexts = std::get_if<DynamicTextList>(&metadataRows[0].content))
+            video.metadataText = getJoinedDynamicTexts(*dynamicTexts, delimiter);
+    }
+
+    for (const InnertubeObjects::ContentMetadataRow& metadataRow : metadataRows)
+        if (auto* badges = std::get_if<QList<InnertubeObjects::BadgeViewModel>>(&metadataRow.content))
+            for (const InnertubeObjects::BadgeViewModel& badge : *badges)
+                video.badges.append(convertBadge(badge));
+
+    // in some cases, like on the channel page, there is no metadata for the channel name, however there is
+    // metadata for the avatar and ID, so you get channel names like "1.6K views", and so we have this.
+    if (!getOwner)
+        return;
+
+    if (std::optional<InnertubeObjects::BasicChannel> owner = lockup.owner())
+    {
+        video.uploaderId = owner->id;
+        video.uploaderText = owner->name;
+        video.uploaderUrlPrefix = "https://www.youtube.com/channel/";
+        if (const InnertubeObjects::GenericThumbnail* recAvatar = owner->icon.recommendedQuality(QSize(205, 205)))
+            video.uploaderAvatarUrl = recAvatar->url;
+
+        if (auto* dynamicText = std::get_if<DynamicTextList>(&metadataRows[0].content);
+            dynamicText && dynamicText->at(0).attachmentRuns.isArray())
+        {
+            const QJsonArray attachmentRuns = dynamicText->at(0).attachmentRuns.toArray();
+            for (const QJsonValue& attachmentRun : attachmentRuns)
+            {
+                const QString attachmentImage = attachmentRun
+                    ["element"]["type"]["imageType"]["image"]
+                    ["sources"][0]["clientResource"]["imageName"].toString();
+                if (attachmentImage == "CHECK_CIRCLE_FILLED")
+                    video.uploaderBadges.append(QtTubePlugin::Badge { .label = "✔" });
+                else if (attachmentImage == "AUDIO_BADGE")
+                    video.uploaderBadges.append(QtTubePlugin::Badge { .label = "♪" });
+            }
+        }
+    }
+}
+
+void processRichGrid(const QJsonValue& richGrid, QList<QtTubePlugin::ChannelTabDataItem>& items, std::any& continuationData)
+{
+    const QJsonArray contents = richGrid["contents"].toArray();
+    for (const QJsonValue& v : contents)
+    {
+        const QJsonValue itemContent = v["richItemRenderer"]["content"];
+        if (const QJsonValue lockup = itemContent["lockupViewModel"]; lockup.isObject())
+            items.append(convertVideo(InnertubeObjects::LockupViewModel(lockup), true, false));
+        else if (const QJsonValue video = itemContent["videoRenderer"]; video.isObject())
+            items.append(convertVideo(InnertubeObjects::Video(video), true));
+        else if (const QJsonValue reel = itemContent["reelItemRenderer"]; reel.isObject())
+            items.append(convertVideo(InnertubeObjects::Reel(video), true));
+        else if (const QJsonValue shortsLockup = itemContent["shortsLockupViewModel"]; shortsLockup.isObject())
+            items.append(convertVideo(InnertubeObjects::ShortsLockupViewModel(shortsLockup), true));
+        else if (const QJsonValue continuation = v["continuationItemRenderer"]; continuation.isObject())
+            continuationData = continuation["continuationEndpoint"]["continuationCommand"]["token"].toString();
+    }
+}
+
+void processSectionList(const QJsonValue& sectionList, QList<QtTubePlugin::ChannelTabDataItem>& items, std::any& continuationData)
+{
+    const QJsonArray contents = sectionList["contents"].toArray();
+    for (const QJsonValue& v : contents)
+    {
+        const QJsonArray itemSectionContents = v["itemSectionRenderer"]["contents"].toArray();
+        for (const QJsonValue& v2 : itemSectionContents)
+        {
+            if (const QJsonValue shelf = v2["shelfRenderer"]; shelf.isObject())
+            {
+                const QJsonObject shelfContent = shelf["content"].toObject();
+                const QJsonValue& begin = *shelfContent.begin();
+                const QJsonArray shelfItems = begin["items"].toArray();
+                if (shelfItems.isEmpty())
+                    continue;
+
+                const QString shelfKey = shelfItems.begin()->toObject().constBegin().key();
+                if (shelfKey == "lockupViewModel")
+                {
+                    QtTubePlugin::Shelf<QtTubePlugin::Video> videoShelf;
+                    videoShelf.title = InnertubeObjects::InnertubeString(shelf["title"]).text;
+                    for (const QJsonValue& v3 : shelfItems)
+                        videoShelf.contents.append(convertVideo(InnertubeObjects::LockupViewModel(v3[shelfKey]), true, false));
+                    items.append(videoShelf);
+                }
+                else if (shelfKey == "gridVideoRenderer" || shelfKey == "videoRenderer")
+                {
+                    QtTubePlugin::Shelf<QtTubePlugin::Video> videoShelf;
+                    videoShelf.title = InnertubeObjects::InnertubeString(shelf["title"]).text;
+                    for (const QJsonValue& v3 : shelfItems)
+                        videoShelf.contents.append(convertVideo(InnertubeObjects::Video(v3[shelfKey]), true));
+                    items.append(videoShelf);
+                }
+                else if (shelfKey == "channelRenderer" || shelfKey == "gridChannelRenderer")
+                {
+                    QtTubePlugin::Shelf<QtTubePlugin::Channel> channelShelf;
+                    channelShelf.title = InnertubeObjects::InnertubeString(shelf["title"]).text;
+                    for (const QJsonValue& v3 : shelfItems)
+                        channelShelf.contents.append(convertChannel(InnertubeObjects::Channel(v3[shelfKey])));
+                    items.append(channelShelf);
+                }
+            }
+            else if (const QJsonValue continuation = v2["continuationItemRenderer"]; continuation.isObject())
+            {
+                continuationData = continuation["continuationEndpoint"]["continuationCommand"]["token"].toString();
+            }
+        }
+    }
+}
+
 QtTubePlugin::Badge convertBadge(const InnertubeObjects::BadgeViewModel& badge)
 {
     QtTubePlugin::Badge result = { .label = badge.badgeText, .tooltip = badge.badgeText };
@@ -156,22 +291,16 @@ QtTubePlugin::ChannelHeader convertChannelHeader(
     const QList<InnertubeObjects::ContentMetadataRow>& metadataRows = header.metadata.metadataRows;
 
     if (metadataRows.size() > 0)
-    {
-        if (const auto* dynamicText = std::get_if<QList<InnertubeObjects::DynamicText>>(&metadataRows[0].content);
-            dynamicText && !dynamicText->isEmpty())
-        {
-            channelHandle = dynamicText->at(0).content;
-        }
-    }
+        if (const auto* dynamicTexts = std::get_if<DynamicTextList>(&metadataRows[0].content))
+            channelHandle = dynamicTexts->at(0).content;
 
     if (metadataRows.size() > 1)
     {
-        if (const auto* dynamicText = std::get_if<QList<InnertubeObjects::DynamicText>>(&metadataRows[1].content))
+        if (const auto* dynamicTexts = std::get_if<DynamicTextList>(&metadataRows[1].content))
         {
-            if (dynamicText->size() > 0)
-                subCount = dynamicText->at(0).content;
-            if (dynamicText->size() > 1)
-                videosCount = dynamicText->at(1).content;
+            subCount = dynamicTexts->at(0).content;
+            if (dynamicTexts->size() > 1)
+                videosCount = dynamicTexts->at(1).content;
         }
     }
 
@@ -561,74 +690,6 @@ QtTubePlugin::SubscribeButton convertSubscribeButton(
     return result;
 }
 
-void processRichGrid(const QJsonValue& richGrid, QList<QtTubePlugin::ChannelTabDataItem>& items, std::any& continuationData)
-{
-    const QJsonArray contents = richGrid["contents"].toArray();
-    for (const QJsonValue& v : contents)
-    {
-        const QJsonValue itemContent = v["richItemRenderer"]["content"];
-        if (const QJsonValue lockup = itemContent["lockupViewModel"]; lockup.isObject())
-            items.append(convertVideo(InnertubeObjects::LockupViewModel(lockup), true));
-        else if (const QJsonValue video = itemContent["videoRenderer"]; video.isObject())
-            items.append(convertVideo(InnertubeObjects::Video(video), true));
-        else if (const QJsonValue reel = itemContent["reelItemRenderer"]; reel.isObject())
-            items.append(convertVideo(InnertubeObjects::Reel(video), true));
-        else if (const QJsonValue shortsLockup = itemContent["shortsLockupViewModel"]; shortsLockup.isObject())
-            items.append(convertVideo(InnertubeObjects::ShortsLockupViewModel(shortsLockup), true));
-        else if (const QJsonValue continuation = v["continuationItemRenderer"]; continuation.isObject())
-            continuationData = continuation["continuationEndpoint"]["continuationCommand"]["token"].toString();
-    }
-}
-
-void processSectionList(const QJsonValue& sectionList, QList<QtTubePlugin::ChannelTabDataItem>& items, std::any& continuationData)
-{
-    const QJsonArray contents = sectionList["contents"].toArray();
-    for (const QJsonValue& v : contents)
-    {
-        const QJsonArray itemSectionContents = v["itemSectionRenderer"]["contents"].toArray();
-        for (const QJsonValue& v2 : itemSectionContents)
-        {
-            if (const QJsonValue shelf = v2["shelfRenderer"]; shelf.isObject())
-            {
-                const QJsonObject shelfContent = shelf["content"].toObject();
-                const QJsonArray shelfItems = ((const QJsonValue&)(*shelfContent.begin()))["items"].toArray();
-                if (shelfItems.isEmpty())
-                    continue;
-
-                const QString shelfKey = shelfItems.begin()->toObject().constBegin().key();
-                if (shelfKey == "lockupViewModel")
-                {
-                    QtTubePlugin::Shelf<QtTubePlugin::Video> videoShelf;
-                    videoShelf.title = InnertubeObjects::InnertubeString(shelf["title"]).text;
-                    for (const QJsonValue& v3 : shelfItems)
-                        videoShelf.contents.append(convertVideo(InnertubeObjects::LockupViewModel(v3[shelfKey]), true));
-                    items.append(videoShelf);
-                }
-                else if (shelfKey == "gridVideoRenderer" || shelfKey == "videoRenderer")
-                {
-                    QtTubePlugin::Shelf<QtTubePlugin::Video> videoShelf;
-                    videoShelf.title = InnertubeObjects::InnertubeString(shelf["title"]).text;
-                    for (const QJsonValue& v3 : shelfItems)
-                        videoShelf.contents.append(convertVideo(InnertubeObjects::Video(v3[shelfKey]), true));
-                    items.append(videoShelf);
-                }
-                else if (shelfKey == "channelRenderer" || shelfKey == "gridChannelRenderer")
-                {
-                    QtTubePlugin::Shelf<QtTubePlugin::Channel> channelShelf;
-                    channelShelf.title = InnertubeObjects::InnertubeString(shelf["title"]).text;
-                    for (const QJsonValue& v3 : shelfItems)
-                        channelShelf.contents.append(convertChannel(InnertubeObjects::Channel(v3[shelfKey])));
-                    items.append(channelShelf);
-                }
-            }
-            else if (const QJsonValue continuation = v2["continuationItemRenderer"]; continuation.isObject())
-            {
-                continuationData = continuation["continuationEndpoint"]["continuationCommand"]["token"].toString();
-            }
-        }
-    }
-}
-
 QtTubePlugin::ChannelTabData convertTab(const QJsonValue& tabRenderer, std::any& continuationData)
 {
     QtTubePlugin::ChannelTabData result = {
@@ -704,62 +765,8 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::DisplayAd& displayAd, b
     return result;
 }
 
-void getLockupMetadata(QtTubePlugin::Video& video, const InnertubeObjects::LockupViewModel& lockup)
-{
-    const QList<InnertubeObjects::ContentMetadataRow>& metadataRows = lockup.metadata.metadata.metadataRows;
-
-    if (metadataRows.size() > 1 && std::holds_alternative<QList<InnertubeObjects::DynamicText>>(metadataRows[1].content))
-    {
-        const auto& dynamicText = std::get<QList<InnertubeObjects::DynamicText>>(metadataRows[1].content);
-        QStringList metadataList;
-        for (const InnertubeObjects::DynamicText& part : dynamicText)
-            metadataList.append(part.content);
-        video.metadataText = metadataList.join(lockup.metadata.metadata.delimiter);
-    }
-    else if (metadataRows[0].contentType == "METADATA_ROW_CONTENT_TYPE_BYLINE")
-    {
-        const auto& dynamicText = std::get<QList<InnertubeObjects::DynamicText>>(metadataRows[0].content);
-        video.metadataText = dynamicText.value(1).content;
-    }
-
-    auto badgesIt = std::ranges::find_if(metadataRows, [](const InnertubeObjects::ContentMetadataRow& row) {
-        return std::holds_alternative<QList<InnertubeObjects::BadgeViewModel>>(row.content);
-    });
-    if (badgesIt != metadataRows.end())
-    {
-        const auto& badges = std::get<QList<InnertubeObjects::BadgeViewModel>>(badgesIt->content);
-        for (const InnertubeObjects::BadgeViewModel& badge : badges)
-            video.badges.append(convertBadge(badge));
-    }
-
-    if (std::optional<InnertubeObjects::BasicChannel> owner = lockup.owner())
-    {
-        video.uploaderId = owner->id;
-        video.uploaderText = owner->name;
-        video.uploaderUrlPrefix = "https://www.youtube.com/channel/";
-        if (const InnertubeObjects::GenericThumbnail* recAvatar = owner->icon.recommendedQuality(QSize(205, 205)))
-            video.uploaderAvatarUrl = recAvatar->url;
-
-        const QJsonValue& attachmentRunsValue =
-            std::get<QList<InnertubeObjects::DynamicText>>(metadataRows[0].content)[0].attachmentRuns;
-        if (attachmentRunsValue.isArray())
-        {
-            const QJsonArray attachmentRuns = attachmentRunsValue.toArray();
-            for (const QJsonValue& attachmentRun : attachmentRuns)
-            {
-                const QString attachmentImage = attachmentRun
-                    ["element"]["type"]["imageType"]["image"]
-                    ["sources"][0]["clientResource"]["imageName"].toString();
-                if (attachmentImage == "CHECK_CIRCLE_FILLED")
-                    video.uploaderBadges.append(QtTubePlugin::Badge { .label = "✔" });
-                else if (attachmentImage == "AUDIO_BADGE")
-                    video.uploaderBadges.append(QtTubePlugin::Badge { .label = "♪" });
-            }
-        }
-    }
-}
-
-QtTubePlugin::Video convertVideo(const InnertubeObjects::LockupViewModel& lockup, bool useThumbnailFromData)
+QtTubePlugin::Video convertVideo(
+    const InnertubeObjects::LockupViewModel& lockup, bool useThumbnailFromData, bool getOwner)
 {
     QtTubePlugin::Video result = {
         .lengthText = lockup.lengthText(),
@@ -774,7 +781,7 @@ QtTubePlugin::Video convertVideo(const InnertubeObjects::LockupViewModel& lockup
         : "https://img.youtube.com/vi/" + result.videoId + "/mqdefault.jpg";
 
     if (!lockup.metadata.metadata.metadataRows.isEmpty())
-        getLockupMetadata(result, lockup);
+        getLockupMetadata(result, lockup, getOwner);
 
     return result;
 }

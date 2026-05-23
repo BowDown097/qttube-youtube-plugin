@@ -106,7 +106,7 @@ std::pair<std::any, QtTubePlugin::ChannelData> getChannelData(const InnertubeEnd
                 const QJsonObject content = richItem["content"].toObject();
                 QJsonObject::const_iterator it = content.begin();
                 if (it.key() == "lockupViewModel")
-                    tabData.items.append(convertVideo(InnertubeObjects::LockupViewModel(it.value()), true));
+                    tabData.items.append(convertVideo(InnertubeObjects::LockupViewModel(it.value()), true, false));
                 else if (it.key() == "gridVideoRenderer" || it.key() == "videoRenderer")
                     tabData.items.append(convertVideo(InnertubeObjects::Video(it.value()), true));
                 else if (it.key() == "reelItemRenderer")
